@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+- Use the proven asynchronous BusyBox `nslookup` resolver workaround for
+  stock SqueezePlay firmware.
+- Fix retry and 24-hour resynchronization scheduling to restart at the first
+  configured NTP server.
+
 ## 0.1.0
 
 - Initial release.

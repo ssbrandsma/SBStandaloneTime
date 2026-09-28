@@ -84,6 +84,8 @@ StandaloneTime: hwclock -w -u succeeded
 StandaloneTime: Linux clock and RTC synchronized from NTP UTC = 2026-09-28 11:53:17
 ```
 
-The applet uses asynchronous DNS and UDP, tries an ordered list of public NTP
-hostnames, applies bounded retry backoff after failures, and does not depend on
-the Radio's current wall clock when deriving the received UTC value.
+The applet uses asynchronous BusyBox `nslookup` and UDP, which is compatible
+with the stock Radio firmware's unreliable Lua DNS resolver. It tries an
+ordered list of public NTP hostnames, applies bounded retry backoff after
+failures, and does not depend on the Radio's current wall clock when deriving
+the received UTC value.

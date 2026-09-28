@@ -2,10 +2,9 @@ local oo = require("loop.simple")
 local Applet = require("jive.Applet")
 local Framework = require("jive.ui.Framework")
 local Timer = require("jive.ui.Timer")
-local Task = require("jive.ui.Task")
-local DNS = require("jive.net.DNS")
 local SocketUdp = require("jive.net.SocketUdp")
 local Process = require("jive.net.Process")
+local Resolver = require("applets.StandaloneTime.Resolver")
 local string = require("string")
 local tostring = tostring
 local math = require("math")
@@ -77,7 +76,8 @@ local function beginNextServer(self)
         self.retryIndex = math.min(self.retryIndex + 1, #RETRY_DELAYS)
         local delay = RETRY_DELAYS[self.retryIndex]
         log:warn("StandaloneTime: all servers failed; retry in " .. tostring(delay) .. " ms")
-        schedule(self, delay, function() self.serverIndex = 0; self:nextRequest() end)
+        -- Restart the ordered list at server 1; index 0 is not a server.
+        schedule(self, delay, function() self.serverIndex = 1; self:nextRequest() end)
     else
         schedule(self, 100, function() self:nextRequest() end)
     end
@@ -132,7 +132,7 @@ local function writeRtc(self, utc)
         log:warn("StandaloneTime: Linux clock and RTC synchronized from NTP UTC = " .. utc)
         self.retryIndex = 0
         log:warn("StandaloneTime: next synchronization in 86400000 ms")
-        schedule(self, RESYNC_MS, function() self.serverIndex = 0; self:nextRequest() end)
+        schedule(self, RESYNC_MS, function() self.serverIndex = 1; self:nextRequest() end)
     end)
 end
 
@@ -207,14 +207,11 @@ end
 
 local function resolveAndSend(self)
     local server = self.server
-    local task = Task("StandaloneTimeDNS", self, function()
-        local resolver = DNS(jnt)
-        local ip, err = resolver:toip(server)
+    local resolver = Resolver.new({ log = log })
+    resolver:resolve(server, function(ip, err)
         if not ip then return failAttempt(self, "DNS failed: " .. tostring(err)) end
-        log:warn("StandaloneTime: DNS " .. server .. " -> " .. ip)
         sendRequest(self, ip)
     end)
-    task:addTask()
 end
 
 function _M:nextRequest()
