@@ -1,0 +1,8 @@
+dist/
+release/
+*.zip
+*.sha1
+*.log
+.venv/
+__pycache__/
+JiveMain.test.lua
